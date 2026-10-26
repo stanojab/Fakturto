@@ -1,0 +1,64 @@
+# Fakturko
+
+**Fakturko** je spletna platforma za zbiranje in obdelavo prejetih računov med računovodskim servisom in njegovimi strankami.
+
+Stranke (mala podjetja in samostojni podjetniki) račune dobaviteljev naložijo v aplikacijo kot PDF ali fotografijo. Sistem iz računa samodejno prebere podatke za plačilo (najprej iz UPN QR kode, sicer z modelom umetne inteligence), računovodja jih pregleda ob izvirniku in potrdi, nato račun plača v spletni banki in ga označi kot plačan. Stranka ves čas vidi status svojih računov, vsi računi pa ostanejo urejeno arhivirani po strankah, letih in mesecih.
+
+Rešitev ne nadomešča programa za knjiženje – pokriva korak **pred knjiženjem**: zbiranje, branje, odobritev, plačilo in hrambo računov.
+
+## Uporabljene tehnologije
+
+| Področje | Tehnologije |
+|---|---|
+| Frontend | React, TypeScript, React Router, Tailwind CSS, react-pdf |
+| Backend | Node.js, NestJS, TypeScript, Multer |
+| Podatkovna baza | PostgreSQL, Prisma ORM, Prisma Migrate |
+| Avtentikacija | JWT, osvežitveni žetoni v piškotkih `httpOnly`, NestJS Guards |
+| Shramba datotek | MinIO (S3 združljiva objektna shramba) |
+| Branje računov | zxing (UPN QR), pdf.js, zunanji model AI (npr. Claude API) |
+| Opravila v ozadju | pg-boss |
+| Lokalni razvoj | Docker, Docker Compose, Git, GitHub |
+
+## Struktura repozitorija
+
+```
+├── README.md
+├── .gitignore
+├── frontend/        # odjemalska aplikacija (React)
+├── backend/         # zaledje – REST API in worker (NestJS)
+└── docs/            # projektna dokumentacija
+    ├── wireframes/  # žični okvirji (PNG)
+    └── adr/         # arhitekturne odločitve (MADR)
+```
+
+## Dokumentacija
+
+- [01 – Zasnova rešitve](docs/01-zasnova-resitve.md)
+- [02 – Funkcionalnosti in obseg](docs/02-funkcionalnosti-in-obseg.md)
+- [03 – Podatkovni model](docs/03-podatkovni-model.md)
+- [04 – Arhitektura in tehnološki sklad](docs/04-arhitektura-in-tehnoloski-sklad.md)
+- [05 – Uporabniške zgodbe](docs/05-uporabniske-zgodbe.md)
+- [06 – Wireframes](docs/06-wireframes.md)
+
+### Arhitekturne odločitve (ADR)
+
+Odločitve so zapisane po predlogi [MADR](https://adr.github.io/madr/) ([predloga](docs/adr/adr-template.md)).
+
+| ADR | Odločitev | Status |
+|---|---|---|
+| [0001](docs/adr/0001-postgresql-kot-podatkovna-baza.md) | PostgreSQL kot podatkovna baza | sprejeto |
+| [0002](docs/adr/0002-datoteke-v-objektni-shrambi.md) | Datoteke računov v objektni shrambi (MinIO), ne v bazi | sprejeto |
+| [0003](docs/adr/0003-branje-podatkov-kot-opravilo-v-ozadju.md) | Branje podatkov kot opravilo v ozadju (pg-boss) | sprejeto |
+| [0004](docs/adr/0004-najprej-upn-qr-nato-ai.md) | Najprej UPN QR koda, nato model AI | sprejeto |
+| [0005](docs/adr/0005-docker-compose-za-lokalni-zagon.md) | Docker Compose za lokalni zagon | sprejeto |
+
+## Razvojni proces
+
+Repozitorij uporablja strategijo [GitHub Flow](https://docs.github.com/en/get-started/using-github/github-flow):
+
+1. Iz veje `main` ustvarimo novo vejo z opisnim imenom (npr. `feature/nalaganje-racunov`, `docs/adr`).
+2. Na veji delamo in redno potrjujemo spremembe (commit) ter jih potisnemo na GitHub.
+3. Odpremo pull request v `main`.
+4. Po pregledu pull request združimo v `main`; veja `main` je vedno v delujočem stanju.
+
+Veja `main` je zaščitena: neposredni push, prisilno prepisovanje zgodovine in brisanje niso dovoljeni, spremembe se združujejo izključno prek pull requestov.

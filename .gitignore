@@ -1,0 +1,47 @@
+# Odvisnosti
+node_modules/
+.pnpm-store/
+
+# Rezultati gradnje
+dist/
+build/
+out/
+.vite/
+coverage/
+*.tsbuildinfo
+
+# Okoljske spremenljivke in skrivnosti
+.env
+.env.*
+!.env.example
+
+# Dnevniki
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Lokalni podatki Docker storitev (PostgreSQL, MinIO)
+data/
+.docker-data/
+minio-data/
+pgdata/
+
+# Naložene datoteke pri lokalnem razvoju
+uploads/
+tmp/
+
+# Urejevalniki in IDE
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.swp
+*.suo
+*.sln.docstates
+
+# Operacijski sistem
+.DS_Store
+Thumbs.db
+desktop.ini
