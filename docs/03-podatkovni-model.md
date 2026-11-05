@@ -21,6 +21,7 @@ Vsaka oseba, ki se prijavi v sistem: zaposleni v računovodskem servisu in upora
 | `firm_role` | ENUM (`ADMIN`, `ACCOUNTANT`), NULL | Vloga v računovodskem servisu; pri uporabnikih strank je prazna |
 | `is_active` | BOOLEAN | Deaktiviran uporabnik se ne more prijaviti |
 | `created_at` | TIMESTAMPTZ | Čas ustvarjanja |
+| `updated_at` | TIMESTAMPTZ | Čas zadnje spremembe |
 
 Administrator ima vse pravice računovodje za vse stranke, zato lahko v manjšem servisu ena oseba opravlja obe vlogi.
 
@@ -40,6 +41,7 @@ Podjetje ali samostojni podjetnik, za katerega računovodski servis obdeluje ra�
 | `slug` | VARCHAR, UNIQUE | Kratko ime za strukturo map v shrambi (npr. `ratko-doo`) |
 | `is_active` | BOOLEAN | Neaktivna stranka ne more nalagati računov |
 | `created_at` | TIMESTAMPTZ | Čas ustvarjanja |
+| `updated_at` | TIMESTAMPTZ | Čas zadnje spremembe |
 
 ### `client_membership` – Članstvo uporabnika pri stranki
  
@@ -51,6 +53,7 @@ Povezuje uporabnika s podjetjem stranke, en uporabnik je lahko povezan z več po
 | `user_id` | UUID, FK → `user` | Uporabnik |
 | `client_id` | UUID, FK → `client` | Stranka |
 | `created_at` | TIMESTAMPTZ | Čas dodelitve |
+| `updated_at` | TIMESTAMPTZ | Čas zadnje spremembe |
  
 Omejitev: `UNIQUE (user_id, client_id)`.
 
@@ -63,7 +66,8 @@ Določa, katere stranke obdeluje posamezen računovodja.
 | `id` | UUID, PK | Enolični identifikator |
 | `accountant_id` | UUID, FK → `user` | Računovodja |
 | `client_id` | UUID, FK → `client` | Stranka |
-| `assigned_at` | TIMESTAMPTZ | Čas dodelitve |
+| `created_at` | TIMESTAMPTZ | Čas dodelitve |
+| `updated_at` | TIMESTAMPTZ | Čas zadnje spremembe |
 
 Omejitev: `UNIQUE (accountant_id, client_id)`.
 
@@ -91,13 +95,14 @@ Osrednja entiteta. Vsebuje podatke, prebrane iz dokumenta, in trenutni status v 
 | `payment_reference` | VARCHAR, NULL | Sklic (npr. `SI12 …` ali `RF …`) |
 | `payment_purpose` | VARCHAR, NULL | Namen plačila |
 | `reviewed_by_id` | UUID, FK → `user`, NULL | Računovodja, ki je potrdil podatke |
+| `reviewed_at` | TIMESTAMPTZ, NULL | Čas, ko je računovodja potrdil podatke |
 | `paid_by_id` | UUID, FK → `user`, NULL | Kdo je račun označil kot plačan |
 | `paid_on` | DATE, NULL | Datum plačila |
 | `status_reason` | TEXT, NULL | Razlog pri vrnitvi ali zavrnitvi |
 | `created_at` | TIMESTAMPTZ | Čas nalaganja |
 | `updated_at` | TIMESTAMPTZ | Čas zadnje spremembe |
 
-Podatkovna polja so lahko prazna, dokler branje ni zaključeno. Pred prehodom v status `AWAITING_APPROVAL` aplikacija preveri, da so izpolnjena vsa polja, potrebna za plačilo (`issuer_name`, `issuer_iban`, `amount`, `due_date`).
+Podatkovna polja so lahko prazna, dokler branje ni zaključeno. Pred prehodom v status `READY_FOR_PAYMENT` aplikacija preveri, da so izpolnjena vsa polja, potrebna za plačilo (`issuer_name`, `issuer_iban`, `amount`, `due_date`).
 
 Za zaznavanje podvojenih računov je ustvarjen indeks na `(client_id, issuer_tax_number, invoice_number)`. To ni omejitev enoličnosti, ker sistem ob podvojitvi samo opozori, odločitev pa ostane računovodji.
 
@@ -116,7 +121,8 @@ Datoteka v objektni shrambi, povezana z računom. En račun ima lahko več datot
 | `size_bytes` | INTEGER | Velikost datoteke |
 | `sha256` | CHAR(64) | Zgoščena vrednost za zaznavanje enakih datotek in preverjanje nespremenjenosti |
 | `uploaded_by_id` | UUID, FK → `user` | Kdo je datoteko naložil |
-| `uploaded_at` | TIMESTAMPTZ | Čas nalaganja |
+| `created_at` | TIMESTAMPTZ | Čas nalaganja |
+| `updated_at` | TIMESTAMPTZ | Čas zadnje spremembe |
 
 Kot trenutni izvirnik računa velja zadnja naložena datoteka vrste `ORIGINAL`.
 
@@ -134,6 +140,7 @@ Obvestilo uporabniku, da ga čaka dejanje.
 | `message` | TEXT | Besedilo obvestila |
 | `read_at` | TIMESTAMPTZ, NULL | Čas branja; prazno pomeni neprebrano |
 | `created_at` | TIMESTAMPTZ | Čas ustvarjanja |
+| `updated_at` | TIMESTAMPTZ | Čas zadnje spremembe |
 
 ## Povezave med entitetami
 
@@ -172,6 +179,7 @@ erDiagram
         enum firm_role "ADMIN, ACCOUNTANT ali prazno"
         boolean is_active
         timestamp created_at
+        timestamp updated_at
     }
 
     CLIENT {
@@ -185,6 +193,7 @@ erDiagram
         string slug UK
         boolean is_active
         timestamp created_at
+        timestamp updated_at
     }
 
     CLIENT_MEMBERSHIP {
@@ -192,13 +201,15 @@ erDiagram
         uuid user_id FK
         uuid client_id FK
         timestamp created_at
+        timestamp updated_at
     }
 
     ACCOUNTANT_ASSIGNMENT {
         uuid id PK
         uuid accountant_id FK
         uuid client_id FK
-        timestamp assigned_at
+        timestamp created_at
+        timestamp updated_at
     }
 
     INVOICE {
@@ -220,7 +231,7 @@ erDiagram
         string payment_reference
         string payment_purpose
         uuid reviewed_by_id FK
-        timestamp approved_at
+        timestamp reviewed_at
         uuid paid_by_id FK
         date paid_on
         string status_reason
@@ -238,7 +249,8 @@ erDiagram
         int size_bytes
         string sha256
         uuid uploaded_by_id FK
-        timestamp uploaded_at
+        timestamp created_at
+        timestamp updated_at
     }
 
 
@@ -251,6 +263,7 @@ erDiagram
         string message
         timestamp read_at
         timestamp created_at
+        timestamp updated_at
     }
 ```
 

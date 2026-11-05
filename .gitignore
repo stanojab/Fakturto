@@ -45,3 +45,6 @@ tmp/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Generirani Prisma client
+backend/src/generated/
