@@ -11,9 +11,9 @@ Rešitev ne nadomešča programa za knjiženje – pokriva korak **pred knjižen
 | Področje | Tehnologije |
 |---|---|
 | Frontend | React, TypeScript, React Router, Tailwind CSS, react-pdf |
-| Backend | Node.js, NestJS, TypeScript, Multer |
+| Backend | Node.js, Express, TypeScript, Zod, Multer |
 | Podatkovna baza | PostgreSQL, Prisma ORM, Prisma Migrate |
-| Avtentikacija | JWT, osvežitveni žetoni v piškotkih `httpOnly`, NestJS Guards |
+| Avtentikacija | JWT, osvežitveni žetoni v piškotkih `httpOnly`, Express middleware |
 | Shramba datotek | MinIO (S3 združljiva objektna shramba) |
 | Branje računov | zxing (UPN QR), pdf.js, zunanji model AI (npr. Claude API) |
 | Opravila v ozadju | pg-boss |
@@ -25,11 +25,84 @@ Rešitev ne nadomešča programa za knjiženje – pokriva korak **pred knjižen
 ├── README.md
 ├── .gitignore
 ├── frontend/        # odjemalska aplikacija (React)
-├── backend/         # zaledje – REST API in worker (NestJS)
+├── backend/         # zaledje – REST API in worker (Express)
+│   └── prisma/      # Prisma shema, migracije in seed skripta
+├── docker-compose.yml
 └── docs/            # projektna dokumentacija
     ├── wireframes/  # žični okvirji (PNG)
     └── adr/         # arhitekturne odločitve (MADR)
 ```
+
+## Lokalni zagon
+
+### Predpogoji
+
+- [Git](https://git-scm.com/)
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (vključuje Docker Compose)
+- [Node.js](https://nodejs.org/) 24 ali novejši
+
+### Koraki
+
+1. **Kloniraj repozitorij**
+
+   ```bash
+   git clone https://github.com/stanojab/Fakturto.git
+   cd Fakturto
+   ```
+
+2. **Nastavi okoljske spremenljivke** – kopiraj predlogo in v `.env` nastavi svoje geslo
+   (isto geslo v `POSTGRES_PASSWORD` in v `DATABASE_URL`):
+
+   ```bash
+   cp .env.example .env
+   ```
+
+3. **Zaženi podatkovno bazo** (PostgreSQL v Dockerju):
+
+   ```bash
+   docker compose up -d
+   docker compose ps   # fakturko-postgres mora imeti status "healthy"
+   ```
+
+4. **Namesti odvisnosti backenda in pripravi bazo:**
+
+   ```bash
+   cd backend
+   npm install
+   npx prisma migrate deploy   # ustvari tabele
+   npx prisma generate         # generira Prisma client
+   ```
+
+5. **Napolni bazo s testnimi podatki** (≈15.000 izmišljenih zapisov, Faker):
+
+   ```bash
+   npm run db:seed
+   ```
+
+   Seed se izvede samo na prazni bazi. Za ponoven začetek (**izbriše vse podatke**):
+   `npx prisma migrate reset`.
+
+   Testni uporabniki: `admin@fakturko.test`, `racunovodja@fakturko.test`, `stranka@fakturko.test`
+   (prijava še ni implementirana).
+
+6. **Zaženi backend:**
+
+   ```bash
+   npm run dev
+   ```
+
+   Preveri na http://localhost:3000/health → `{"status":"ok"}`.
+
+### Uporabni ukazi (v mapi `backend/`)
+
+| Ukaz | Opis |
+|---|---|
+| `npm run dev` | Zagon backenda z avtomatskim ponovnim zagonom ob spremembah |
+| `npm run build` / `npm start` | Prevajanje v `dist/` in zagon prevedene različice |
+| `npm run lint` | Preverjanje kode z ESLint |
+| `npm run format` | Oblikovanje kode s Prettier |
+| `npm run db:seed` | Polnjenje prazne baze s testnimi podatki |
+| `npx prisma studio` | Pregled podatkov v brskalniku |
 
 ## Dokumentacija
 
