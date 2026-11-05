@@ -9,7 +9,10 @@ export default defineConfig(
   tseslint.configs.recommended, // TypeScript rules
   {
     rules: {
-      "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        { argsIgnorePattern: "^_", ignoreRestSiblings: true },
+      ],
     },
   },
   prettier, // last: turn off style rules that Prettier handles

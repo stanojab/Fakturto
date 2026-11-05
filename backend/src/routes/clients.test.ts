@@ -29,6 +29,15 @@ describe("POST /api/clients", () => {
     expect(res.body.isActive).toBe(true);
   });
 
+  it("defaults the payment mode to ACCOUNTANT_PAYS", async () => {
+    const { paymentMode: _omit, ...body } = validClient();
+
+    const res = await request(app).post("/api/clients").send(body);
+
+    expect(res.status).toBe(201);
+    expect(res.body.paymentMode).toBe("ACCOUNTANT_PAYS");
+  });
+
   it("rejects an invalid tax number with 400", async () => {
     const res = await request(app)
       .post("/api/clients")

@@ -27,7 +27,7 @@ const clientBodySchema = z.object({
     .string()
     .transform((s) => s.replace(/\s+/g, "").toUpperCase()) // "si56 0123 ..." → "SI560123..."
     .pipe(z.string().regex(/^SI56\d{15}$/, "IBAN mora biti slovenski (SI56 + 15 številk)")),
-  paymentMode: z.enum(["ACCOUNTANT_PAYS", "CLIENT_PAYS"]),
+  paymentMode: z.enum(["ACCOUNTANT_PAYS", "CLIENT_PAYS"]).optional(), // new clients: database default ACCOUNTANT_PAYS
 });
 
 // For editing: every field is optional, and a client can also be reactivated

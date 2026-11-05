@@ -102,6 +102,7 @@ Rešitev ne nadomešča programa za knjiženje – pokriva korak **pred knjižen
 | `npm run lint` | Preverjanje kode z ESLint |
 | `npm run format` | Oblikovanje kode s Prettier |
 | `npm run db:seed` | Polnjenje prazne baze s testnimi podatki |
+| `npm test` | Zagon avtomatskih testov (potrebuje zagnano bazo) |
 | `npx prisma studio` | Pregled podatkov v brskalniku |
 
 ## Dokumentacija
