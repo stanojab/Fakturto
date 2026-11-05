@@ -158,3 +158,22 @@ clientsRouter.patch("/:id", async (req, res) => {
     throw e;
   }
 });
+// DELETE /api/clients/:id – soft delete: the client is deactivated, never removed
+clientsRouter.delete("/:id", async (req, res) => {
+  const id = z.uuid().safeParse(req.params.id);
+  if (!id.success) {
+    res.status(404).json({ error: "Client not found" });
+    return;
+  }
+
+  try {
+    await prisma.client.update({ where: { id: id.data }, data: { isActive: false } });
+    res.status(204).end();
+  } catch (e) {
+    if (isPrismaError(e, "P2025")) {
+      res.status(404).json({ error: "Client not found" });
+      return;
+    }
+    throw e;
+  }
+});
