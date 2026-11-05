@@ -10,7 +10,7 @@ Rešitev ne nadomešča programa za knjiženje – pokriva korak **pred knjižen
 
 | Področje | Tehnologije |
 |---|---|
-| Frontend | React, TypeScript, React Router, Tailwind CSS, react-pdf |
+| Frontend | React, TypeScript, Vite, React Router |
 | Backend | Node.js, Express, TypeScript, Zod, Multer |
 | Podatkovna baza | PostgreSQL, Prisma ORM, Prisma Migrate |
 | Avtentikacija | JWT, osvežitveni žetoni v piškotkih `httpOnly`, Express middleware |
@@ -92,6 +92,17 @@ Rešitev ne nadomešča programa za knjiženje – pokriva korak **pred knjižen
    ```
 
    Preveri na http://localhost:3000/health → `{"status":"ok"}`.
+
+7. **Zaženi frontend** (v novem terminalu, backend mora teči):
+
+   ```bash
+   cd frontend
+   npm install
+   npm run dev
+   ```
+
+   Odpri http://localhost:5173 → zaslon **Stranke** (pregled, iskanje, dodajanje, urejanje, deaktivacija).
+   Zahteve na `/api/...` Vite preusmeri na backend (`http://localhost:3000`).
 
 ### Uporabni ukazi (v mapi `backend/`)
 
