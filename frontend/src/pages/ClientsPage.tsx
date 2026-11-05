@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import ClientForm from "../components/ClientForm";
 
 export type Client = {
   id: string;
@@ -24,6 +25,8 @@ export default function ClientsPage() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [showInactive, setShowInactive] = useState(false);
+  const [editing, setEditing] = useState<Client | "new" | null>(null);
+  const [reload, setReload] = useState(0);
 
   useEffect(() => {
     const params = new URLSearchParams({
@@ -39,13 +42,29 @@ export default function ClientsPage() {
       })
       .then(setData)
       .catch((err) => setError(String(err)));
-  }, [page, search, showInactive]);
+  }, [page, search, showInactive, reload]);
 
   if (error) return <p>Napaka: {error}</p>;
 
   return (
     <>
       <h1>Stranke {data && `(${data.total})`}</h1>
+
+      {editing ? (
+        <ClientForm
+          key={editing === "new" ? "new" : editing.id}
+          client={editing === "new" ? undefined : editing}
+          onCancel={() => setEditing(null)}
+          onSaved={() => {
+            setEditing(null);
+            setReload(reload + 1);
+          }}
+        />
+      ) : (
+        <button onClick={() => setEditing("new")} style={{ marginBottom: 12 }}>
+          + Nova stranka
+        </button>
+      )}
 
       <div style={{ display: "flex", gap: 16, marginBottom: 12 }}>
         <input
@@ -81,6 +100,7 @@ export default function ClientsPage() {
             <th>Naslov</th>
             <th>IBAN</th>
             <th>Status</th>
+            <th>Akcije</th>
           </tr>
         </thead>
         <tbody>
@@ -91,6 +111,9 @@ export default function ClientsPage() {
               <td>{c.address}</td>
               <td>{c.iban}</td>
               <td>{c.isActive ? "Aktivna" : "Neaktivna"}</td>
+              <td>
+                <button onClick={() => setEditing(c)}>Uredi</button>
+              </td>
             </tr>
           ))}
         </tbody>
