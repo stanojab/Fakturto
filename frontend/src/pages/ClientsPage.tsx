@@ -44,6 +44,14 @@ export default function ClientsPage() {
       .catch((err) => setError(String(err)));
   }, [page, search, showInactive, reload]);
 
+  // Soft delete: the backend sets is_active = false, the row stays in the database
+  async function handleDeactivate(c: Client) {
+    if (!confirm(`Ali res želite deaktivirati stranko "${c.name}"?`)) return;
+    const res = await fetch(`/api/clients/${c.id}`, { method: "DELETE" });
+    if (!res.ok) return alert(`Deaktivacija ni uspela (HTTP ${res.status})`);
+    setReload(reload + 1);
+  }
+
   if (error) return <p>Napaka: {error}</p>;
 
   return (
@@ -112,7 +120,10 @@ export default function ClientsPage() {
               <td>{c.iban}</td>
               <td>{c.isActive ? "Aktivna" : "Neaktivna"}</td>
               <td>
-                <button onClick={() => setEditing(c)}>Uredi</button>
+                <button onClick={() => setEditing(c)}>Uredi</button>{" "}
+                {c.isActive && (
+                  <button onClick={() => handleDeactivate(c)}>Deaktiviraj</button>
+                )}
               </td>
             </tr>
           ))}
