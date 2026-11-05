@@ -1,7 +1,10 @@
 import express from "express";
 import { prisma } from "./db.js";
 import { config } from "./config.js";
+import { clientsRouter } from "./routes/clients.js";
 const app = express();
+app.use(express.json());
+app.use("/api/clients", clientsRouter);
 
 app.get("/health", async (_req, res) => {
   await prisma.$queryRaw`SELECT 1`; //checks is the database reachab;e
