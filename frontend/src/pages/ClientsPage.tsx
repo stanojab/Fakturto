@@ -1,20 +1,158 @@
 import { useEffect, useState } from "react";
+import ClientForm from "../components/ClientForm";
+
+export type Client = {
+  id: string;
+  name: string;
+  taxNumber: string;
+  registrationNumber: string | null;
+  address: string;
+  iban: string;
+  paymentMode: "ACCOUNTANT_PAYS" | "CLIENT_PAYS";
+  isActive: boolean;
+};
+
+type ClientList = {
+  items: Client[];
+  total: number;
+  page: number;
+  totalPages: number;
+};
 
 export default function ClientsPage() {
-  const [total, setTotal] = useState<number | null>(null);
+  const [data, setData] = useState<ClientList | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
+  const [showInactive, setShowInactive] = useState(false);
+  const [editing, setEditing] = useState<Client | "new" | null>(null);
+  const [reload, setReload] = useState(0);
 
   useEffect(() => {
-    fetch("/api/clients?pageSize=1")
+    const params = new URLSearchParams({
+      page: String(page),
+      pageSize: "20",
+      search,
+      includeInactive: String(showInactive),
+    });
+    fetch(`/api/clients?${params}`)
       .then((res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();
       })
-      .then((data) => setTotal(data.total))
+      .then(setData)
       .catch((err) => setError(String(err)));
-  }, []);
+  }, [page, search, showInactive, reload]);
+
+  // Soft delete: the backend sets is_active = false, the row stays in the database
+  async function handleDeactivate(c: Client) {
+    if (!confirm(`Ali res želite deaktivirati stranko "${c.name}"?`)) return;
+    const res = await fetch(`/api/clients/${c.id}`, { method: "DELETE" });
+    if (!res.ok) return alert(`Deaktivacija ni uspela (HTTP ${res.status})`);
+    setReload(reload + 1);
+  }
 
   if (error) return <p>Napaka: {error}</p>;
-  if (total === null) return <p>Nalaganje …</p>;
-  return <h1>Stranke ({total})</h1>;
+
+  return (
+    <>
+      <h1>Stranke {data && `(${data.total})`}</h1>
+
+      {editing ? (
+        <ClientForm
+          key={editing === "new" ? "new" : editing.id}
+          client={editing === "new" ? undefined : editing}
+          onCancel={() => setEditing(null)}
+          onSaved={() => {
+            setEditing(null);
+            setReload(reload + 1);
+          }}
+        />
+      ) : (
+        <button onClick={() => setEditing("new")} style={{ marginBottom: 12 }}>
+          + Nova stranka
+        </button>
+      )}
+
+      <div style={{ display: "flex", gap: 16, marginBottom: 12 }}>
+        <input
+          placeholder="Išči po nazivu ali davčni …"
+          value={search}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setPage(1);
+          }}
+        />
+        <label>
+          <input
+            type="checkbox"
+            checked={showInactive}
+            onChange={(e) => {
+              setShowInactive(e.target.checked);
+              setPage(1);
+            }}
+          />{" "}
+          Pokaži neaktivne
+        </label>
+      </div>
+
+      <table
+        border={1}
+        cellPadding={6}
+        style={{ borderCollapse: "collapse", width: "100%" }}
+      >
+        <thead>
+          <tr>
+            <th>Naziv</th>
+            <th>Davčna št.</th>
+            <th>Naslov</th>
+            <th>IBAN</th>
+            <th>Status</th>
+            <th>Akcije</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data?.items.map((c) => (
+            <tr key={c.id} style={{ opacity: c.isActive ? 1 : 0.5 }}>
+              <td>{c.name}</td>
+              <td>{c.taxNumber}</td>
+              <td>{c.address}</td>
+              <td>{c.iban}</td>
+              <td>{c.isActive ? "Aktivna" : "Neaktivna"}</td>
+              <td>
+                <button onClick={() => setEditing(c)}>Uredi</button>{" "}
+                {c.isActive && (
+                  <button onClick={() => handleDeactivate(c)}>Deaktiviraj</button>
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      {data && (
+        <div
+          style={{
+            display: "flex",
+            gap: 8,
+            marginTop: 12,
+            alignItems: "center",
+          }}
+        >
+          <button disabled={page <= 1} onClick={() => setPage(page - 1)}>
+            ← Nazaj
+          </button>
+          <span>
+            Stran {data.page} / {data.totalPages}
+          </span>
+          <button
+            disabled={page >= data.totalPages}
+            onClick={() => setPage(page + 1)}
+          >
+            Naprej →
+          </button>
+        </div>
+      )}
+    </>
+  );
 }
