@@ -22,6 +22,10 @@ export default function Layout() {
         }}
       >
         <strong>Fakturko</strong>
+        {user?.firmRole === null && (
+          <NavLink to="/invoices">Moji računi</NavLink>
+        )}
+        <NavLink to="/upload">Naloži račun</NavLink>
         {user?.firmRole === "ADMIN" && <NavLink to="/clients">Stranke</NavLink>}
         <span style={{ marginLeft: "auto" }}>{user?.fullName}</span>
         <button onClick={handleLogout}>Odjava</button>

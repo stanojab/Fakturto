@@ -95,6 +95,9 @@ Rešitev ne nadomešča programa za knjiženje – pokriva korak **pred knjižen
 
    Preveri na http://localhost:3000/health → `{"status":"ok"}`.
 
+   Naložene datoteke računov se v MVP shranjujejo v mapo `backend/uploads/` (izključena iz Gita,
+   glej [ADR 0006](docs/adr/0006-lokalni-disk-za-mvp.md)); mapo lahko spremeniš s `UPLOAD_DIR` v `.env`.
+
 7. **Zaženi frontend** (v novem terminalu, backend mora teči):
 
    ```bash
