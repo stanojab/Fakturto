@@ -8,6 +8,7 @@ import Layout from "./Layout";
 import ClientsPage from "./pages/ClientsPage";
 import LoginPage from "./pages/LoginPage";
 import MyInvoicesPage from "./pages/MyInvoicesPage";
+import PaymentsPage from "./pages/PaymentsPage";
 import ReviewPage from "./pages/ReviewPage";
 import ReviewQueuePage from "./pages/ReviewQueuePage";
 import UploadPage from "./pages/UploadPage";
@@ -44,6 +45,14 @@ createRoot(document.getElementById("root")!).render(
               }
             />
             <Route path="/upload" element={<UploadPage />} />
+            <Route
+              path="/payments"
+              element={
+                <RequireAuth roles={["ACCOUNTANT", "ADMIN"]}>
+                  <PaymentsPage />
+                </RequireAuth>
+              }
+            />
             <Route
               path="/review"
               element={
