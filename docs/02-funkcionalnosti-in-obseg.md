@@ -90,6 +90,22 @@ Funkcionalnosti, označene z **[MVP]**, so del prve delujoče različice. Funkci
 11. **Izvoz arhiva in podatkov**
     Prenos vseh računov stranke za izbrano obdobje kot ZIP datoteke z enako strukturo map kot v aplikaciji ter tiskanje računov .
 
+## Prehodi statusov računa
+
+Dovoljeni so samo prehodi iz spodnje tabele. Pravila so v zaledju definirana na enem mestu (`backend/src/invoiceStatus.ts`). Prehod, ki ga v tabeli ni, API zavrne z `409 Conflict`; prehod, ki obstaja, a ni dovoljen za vlogo uporabnika, pa z `403 Forbidden`. Računa s statusom »Plačan« ali »Arhiviran« ni mogoče več urejati.
+
+| Iz statusa | V status | Kdo | Kdaj |
+|---|---|---|---|
+| Naložen (`UPLOADED`) | V obdelavi (`PROCESSING`) | sistem | začetek samodejnega branja |
+| Naložen (`UPLOADED`) | V pregledu (`IN_REVIEW`) | sistem | v MVP takoj po nalaganju (ročni vnos podatkov) |
+| V obdelavi (`PROCESSING`) | V pregledu (`IN_REVIEW`) | sistem | branje končano |
+| V pregledu (`IN_REVIEW`) | Pripravljen za plačilo (`READY_FOR_PAYMENT`) | računovodja, administrator | potrditev podatkov |
+| V pregledu (`IN_REVIEW`) | Vrnjen stranki (`RETURNED`) | računovodja, administrator | račun ni uporaben |
+| V pregledu (`IN_REVIEW`) | Zavrnjen (`REJECTED`) | računovodja, administrator | račun ne bo plačan |
+| Vrnjen stranki (`RETURNED`) | V obdelavi (`PROCESSING`) | stranka, računovodja, administrator | ponovno nalaganje |
+| Pripravljen za plačilo (`READY_FOR_PAYMENT`) | Plačan (`PAID`) | računovodja, administrator | označitev plačila |
+| Plačan (`PAID`) | Arhiviran (`ARCHIVED`) | sistem, administrator | arhiviranje |
+
 ## Obseg MVP
 
 Da je prva delujoča različica čim prej končana, MVP pokriva samo osnovni potek dela:
