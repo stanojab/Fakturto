@@ -1,10 +1,16 @@
 import { randomUUID } from "node:crypto";
 import { Router } from "express";
 import { z } from "zod";
+import { clientScope } from "../access.js";
 import { prisma } from "../db.js";
 import { Prisma } from "../generated/prisma/client.js";
+import { currentUser, requireAuth, requireRole } from "../middleware/auth.js";
 
 export const clientsRouter = Router();
+
+// All client routes need a logged-in user; reading is limited to the user's clients,
+// creating, editing and deactivating is for administrators only
+clientsRouter.use(requireAuth);
 
 // What the query parameters (?page=2&search=novak) may look like
 const listQuerySchema = z.object({
@@ -59,8 +65,9 @@ clientsRouter.get("/", async (req, res) => {
   }
   const { page, pageSize, search, includeInactive } = parsed.data;
 
-  // WHERE condition: only active clients
+  // WHERE condition: only the user's clients, only active ones
   const where: Prisma.ClientWhereInput = {
+    ...clientScope(currentUser(req)),
     ...(includeInactive ? {} : { isActive: true }),
     ...(search
       ? {
@@ -93,8 +100,9 @@ clientsRouter.get("/:id", async (req, res) => {
     return;
   }
 
-  const client = await prisma.client.findUnique({
-    where: { id: id.data },
+  // another client's id behaves exactly like an unknown id → 404
+  const client = await prisma.client.findFirst({
+    where: { id: id.data, ...clientScope(currentUser(req)) },
     include: { _count: { select: { invoices: true } } },
   });
 
@@ -105,7 +113,7 @@ clientsRouter.get("/:id", async (req, res) => {
   res.json(client);
 });
 // POST /api/clients – create a client
-clientsRouter.post("/", async (req, res) => {
+clientsRouter.post("/", requireRole("ADMIN"), async (req, res) => {
   const parsed = clientBodySchema.safeParse(req.body);
   if (!parsed.success) {
     res
@@ -129,7 +137,7 @@ clientsRouter.post("/", async (req, res) => {
 });
 
 // PATCH /api/clients/:id – edit a client (only the fields that were sent)
-clientsRouter.patch("/:id", async (req, res) => {
+clientsRouter.patch("/:id", requireRole("ADMIN"), async (req, res) => {
   const id = z.uuid().safeParse(req.params.id);
   if (!id.success) {
     res.status(404).json({ error: "Client not found" });
@@ -159,7 +167,7 @@ clientsRouter.patch("/:id", async (req, res) => {
   }
 });
 // DELETE /api/clients/:id – soft delete: the client is deactivated, never removed
-clientsRouter.delete("/:id", async (req, res) => {
+clientsRouter.delete("/:id", requireRole("ADMIN"), async (req, res) => {
   const id = z.uuid().safeParse(req.params.id);
   if (!id.success) {
     res.status(404).json({ error: "Client not found" });
