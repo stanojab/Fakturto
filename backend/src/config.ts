@@ -6,6 +6,7 @@ const envSchema = z.object({
   DATABASE_URL: z.string().startsWith("postgresql://"),
   JWT_SECRET: z.string().min(32, "JWT_SECRET must be at least 32 characters"),
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
+  UPLOAD_DIR: z.string().default("uploads"), // MVP file storage on disk (ADR 0006)
 });
 
 const result = envSchema.safeParse(process.env);
