@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from "react";
+import { apiFetch } from "../auth";
 import type { Client } from "../pages/ClientsPage";
 
 type Props = {
@@ -26,7 +27,7 @@ export default function ClientForm({ client, onSaved, onCancel }: Props) {
     e.preventDefault(); // stop the browser from reloading the page
     setError(null);
 
-    const res = await fetch(
+    const res = await apiFetch(
       client ? `/api/clients/${client.id}` : "/api/clients",
       {
         method: client ? "PATCH" : "POST",
