@@ -1,6 +1,7 @@
 import cookieParser from "cookie-parser";
 import express, { type NextFunction, type Request, type Response } from "express";
 import { prisma } from "./db.js";
+import { TransitionError } from "./invoiceStatus.js";
 import { authRouter } from "./routes/auth.js";
 import { clientsRouter } from "./routes/clients.js";
 import { invoicesRouter } from "./routes/invoices.js";
@@ -26,6 +27,11 @@ app.use((_req: Request, res: Response) => {
 
 // Unexpected errors → log them, and send the user only a generic message
 app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
+  // A forbidden or impossible status change → 403 / 409 with the reason
+  if (err instanceof TransitionError) {
+    res.status(err.status).json({ error: err.message });
+    return;
+  }
   console.error(err);
   res.status(500).json({ error: "Internal server error" });
 });
