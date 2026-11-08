@@ -54,9 +54,10 @@ export async function transitionInvoice(
   to: InvoiceStatus,
   actor: Actor,
   data: Omit<Prisma.InvoiceUncheckedUpdateManyInput, "status"> = {},
+  db: Prisma.TransactionClient = prisma, // pass a transaction to combine it with other writes
 ) {
   checkTransition(invoice.status, to, actor);
-  const { count } = await prisma.invoice.updateMany({
+  const { count } = await db.invoice.updateMany({
     where: { id: invoice.id, status: invoice.status },
     data: { ...data, status: to },
   });
