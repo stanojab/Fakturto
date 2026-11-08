@@ -103,7 +103,8 @@ Rešitev ne nadomešča programa za knjiženje – pokriva korak **pred knjižen
    npm run dev
    ```
 
-   Odpri http://localhost:5173 → zaslon **Stranke** (pregled, iskanje, dodajanje, urejanje, deaktivacija).
+   Odpri http://localhost:5173 → **prijava** s testnim uporabnikom (glej korak 5). Administrator
+   vidi zaslon **Stranke** (pregled, iskanje, dodajanje, urejanje, deaktivacija).
    Zahteve na `/api/...` Vite preusmeri na backend (`http://localhost:3000`).
 
 ### Uporabni ukazi (v mapi `backend/`)

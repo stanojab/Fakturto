@@ -1,19 +1,42 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router";
+import { AuthProvider } from "./auth";
+import HomeRedirect from "./components/HomeRedirect";
+import RequireAuth from "./components/RequireAuth";
 import Layout from "./Layout";
 import ClientsPage from "./pages/ClientsPage";
+import LoginPage from "./pages/LoginPage";
+import WelcomePage from "./pages/WelcomePage";
 import "./index.css";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <BrowserRouter>
-      <Routes>
-        <Route element={<Layout />}>
-          <Route path="/" element={<Navigate to="/clients" replace />} />
-          <Route path="/clients" element={<ClientsPage />} />
-        </Route>
-      </Routes>
+      <AuthProvider>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route
+            element={
+              <RequireAuth>
+                <Layout />
+              </RequireAuth>
+            }
+          >
+            <Route path="/" element={<HomeRedirect />} />
+            <Route
+              path="/clients"
+              element={
+                <RequireAuth roles={["ADMIN"]}>
+                  <ClientsPage />
+                </RequireAuth>
+              }
+            />
+            <Route path="/welcome" element={<WelcomePage />} />
+          </Route>
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </AuthProvider>
     </BrowserRouter>
   </StrictMode>,
 );
