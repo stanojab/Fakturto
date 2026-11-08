@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { apiFetch } from "../auth";
+import MarkPaidDialog from "../components/MarkPaidDialog";
 import {
   formatAmount,
   formatDate,
@@ -55,6 +56,8 @@ export default function PaymentsPage() {
   const [page, setPage] = useState(1);
   const [data, setData] = useState<Page<InvoiceListItem> | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [paying, setPaying] = useState<InvoiceListItem | null>(null);
+  const [reload, setReload] = useState(0);
 
   useEffect(() => {
     apiFetch("/api/clients?pageSize=500")
@@ -73,12 +76,16 @@ export default function PaymentsPage() {
     apiFetch(`/api/invoices?${params}`)
       .then((res) => res.json())
       .then(setData);
-  }, [page, search, clientId]);
+  }, [page, search, clientId, reload]);
+
+  function showToast(message: string) {
+    setToast(message);
+    setTimeout(() => setToast(null), 2000);
+  }
 
   async function copy(value: string, what: string) {
     const ok = await copyToClipboard(value);
-    setToast(ok ? `${what} kopiran` : "Kopiranje ni uspelo");
-    setTimeout(() => setToast(null), 2000);
+    showToast(ok ? `${what} kopiran` : "Kopiranje ni uspelo");
   }
 
   const copyButton = (value: string | null, what: string) =>
@@ -138,6 +145,18 @@ export default function PaymentsPage() {
         </div>
       )}
 
+      {paying && (
+        <MarkPaidDialog
+          invoice={paying}
+          onCancel={() => setPaying(null)}
+          onDone={() => {
+            setPaying(null);
+            setReload(reload + 1);
+            showToast("Račun označen kot plačan");
+          }}
+        />
+      )}
+
       {data?.items.length === 0 && <p>Ni računov za plačilo.</p>}
       {!!data?.items.length && (
         <table
@@ -153,6 +172,7 @@ export default function PaymentsPage() {
               <th>Znesek</th>
               <th>IBAN</th>
               <th>Sklic</th>
+              <th></th>
             </tr>
           </thead>
           <tbody>
@@ -184,6 +204,11 @@ export default function PaymentsPage() {
                   <td style={{ whiteSpace: "nowrap" }}>
                     {i.paymentReference ?? "–"}
                     {copyButton(i.paymentReference, "Sklic")}
+                  </td>
+                  <td>
+                    <button onClick={() => setPaying(i)}>
+                      Označi kot plačano
+                    </button>
                   </td>
                 </tr>
               );
