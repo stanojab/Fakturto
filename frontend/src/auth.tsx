@@ -1,5 +1,11 @@
 /* eslint-disable react-refresh/only-export-components -- auth helpers and the provider belong together */
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react";
 
 export type FirmRole = "ADMIN" | "ACCOUNTANT" | null; // null = user at a client company
 export type User = {
@@ -31,7 +37,10 @@ function refreshSession(): Promise<User | null> {
 }
 
 // fetch with the access token; on 401 it refreshes the token once and repeats the request
-export async function apiFetch(url: string, init: RequestInit = {}): Promise<Response> {
+export async function apiFetch(
+  url: string,
+  init: RequestInit = {},
+): Promise<Response> {
   const send = () => {
     const headers = new Headers(init.headers);
     if (accessToken) headers.set("Authorization", `Bearer ${accessToken}`);
@@ -52,8 +61,7 @@ export async function apiFetch(url: string, init: RequestInit = {}): Promise<Res
 
 // Where each role lands after login
 export function homePath(user: User) {
-  if (user.firmRole === null) return "/invoices";
-  return user.firmRole === "ADMIN" ? "/clients" : "/welcome";
+  return user.firmRole === null ? "/invoices" : "/review";
 }
 
 type AuthContextValue = {
@@ -97,7 +105,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>{children}</AuthContext.Provider>
+    <AuthContext.Provider value={{ user, loading, login, logout }}>
+      {children}
+    </AuthContext.Provider>
   );
 }
 
