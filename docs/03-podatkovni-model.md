@@ -142,6 +142,20 @@ Obvestilo uporabniku, da ga čaka dejanje.
 | `created_at` | TIMESTAMPTZ | Čas ustvarjanja |
 | `updated_at` | TIMESTAMPTZ | Čas zadnje spremembe |
 
+### `refresh_token` – Osvežitveni žeton
+
+Osvežitveni žeton prijavljenega uporabnika. V bazi je shranjena samo zgoščena vrednost žetona, zato ga ob odjavi ali deaktivaciji uporabnika lahko prekličemo.
+
+| Polje | Tip | Opis |
+|---|---|---|
+| `id` | UUID, PK | Enolični identifikator |
+| `user_id` | UUID, FK → `user` | Lastnik žetona |
+| `token_hash` | CHAR(64), UNIQUE | Zgoščena vrednost žetona (SHA-256) |
+| `expires_at` | TIMESTAMPTZ | Čas poteka |
+| `revoked_at` | TIMESTAMPTZ, NULL | Čas preklica (odjava, nov žeton); prazno pomeni veljaven |
+| `created_at` | TIMESTAMPTZ | Čas ustvarjanja |
+| `updated_at` | TIMESTAMPTZ | Čas zadnje spremembe |
+
 ## Povezave med entitetami
 
 | Povezava | Tip | Opis |
@@ -154,6 +168,7 @@ Obvestilo uporabniku, da ga čaka dejanje.
 | `user` – `document` | 1:N | Uporabnik naloži več datotek. |
 | `user` – `notification` | 1:N | Uporabnik prejme več obvestil. |
 | `invoice` – `notification` | 1:N | Račun lahko sproži več obvestil. |
+| `user` – `refresh_token` | 1:N | Uporabnik ima lahko več osvežitvenih žetonov (npr. več naprav). |
 
 ## Osnutek podatkovnega modela (ER diagram)
 
@@ -170,6 +185,7 @@ erDiagram
    
     USER ||--o{ NOTIFICATION : "prejme"
     INVOICE |o--o{ NOTIFICATION : "sproži"
+    USER ||--o{ REFRESH_TOKEN : "ima"
 
     USER {
         uuid id PK
@@ -262,6 +278,16 @@ erDiagram
         string type
         string message
         timestamp read_at
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    REFRESH_TOKEN {
+        uuid id PK
+        uuid user_id FK
+        string token_hash UK
+        timestamp expires_at
+        timestamp revoked_at
         timestamp created_at
         timestamp updated_at
     }
