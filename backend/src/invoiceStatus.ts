@@ -53,7 +53,7 @@ export async function transitionInvoice(
   invoice: { id: string; status: InvoiceStatus },
   to: InvoiceStatus,
   actor: Actor,
-  data: Omit<Prisma.InvoiceUpdateManyMutationInput, "status"> = {},
+  data: Omit<Prisma.InvoiceUncheckedUpdateManyInput, "status"> = {},
 ) {
   checkTransition(invoice.status, to, actor);
   const { count } = await prisma.invoice.updateMany({

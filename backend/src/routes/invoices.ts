@@ -1,12 +1,13 @@
 import { randomUUID } from "node:crypto";
-import { Router } from "express";
+import { Router, type Request } from "express";
 import { z } from "zod";
 import { clientScope, invoiceScope } from "../access.js";
 import { prisma } from "../db.js";
 import { InvoiceStatus, Prisma } from "../generated/prisma/client.js";
-import { checkTransition } from "../invoiceStatus.js";
+import { confirmDataSchema } from "../invoiceData.js";
+import { checkTransition, isEditable, transitionInvoice } from "../invoiceStatus.js";
 import { currentUser, requireAuth } from "../middleware/auth.js";
-import { deleteFile, saveFile, storageKey } from "../storage.js";
+import { deleteFile, openFile, saveFile, storageKey } from "../storage.js";
 import { acceptInvoiceFile } from "../upload.js";
 
 export const invoicesRouter = Router();
@@ -188,4 +189,77 @@ invoicesRouter.post("/", acceptInvoiceFile({ required: true }), async (req, res)
     await deleteFile(key); // no database record → remove the file again
     throw e;
   }
+});
+
+// Finds an invoice the user may see (another client's invoice → null → 404)
+async function findVisibleInvoice(req: Request, id: string) {
+  const parsed = z.uuid().safeParse(id);
+  if (!parsed.success) return null;
+  return prisma.invoice.findFirst({
+    where: { id: parsed.data, ...invoiceScope(currentUser(req)) },
+  });
+}
+
+// GET /api/invoices/:id/documents/:documentId/file – the file itself, only after the access check.
+// (Instead of a presigned MinIO link – ADR 0006.)
+invoicesRouter.get("/:id/documents/:documentId/file", async (req, res) => {
+  const invoice = await findVisibleInvoice(req, req.params.id);
+  const documentId = z.uuid().safeParse(req.params.documentId);
+  const doc =
+    invoice && documentId.success
+      ? await prisma.document.findFirst({ where: { id: documentId.data, invoiceId: invoice.id } })
+      : null;
+  if (!doc) {
+    res.status(404).json({ error: "Document not found" });
+    return;
+  }
+
+  res.setHeader("Content-Type", doc.mimeType);
+  res.setHeader(
+    "Content-Disposition",
+    `inline; filename*=UTF-8''${encodeURIComponent(doc.originalFilename)}`,
+  );
+  res.setHeader("Cache-Control", "private, no-store");
+  openFile(doc.storageKey)
+    .on("error", () => {
+      if (!res.headersSent) res.status(404).json({ error: "File missing in storage" });
+      else res.end();
+    })
+    .pipe(res);
+});
+
+// POST /api/invoices/:id/confirm – the accountant confirms the (corrected) data → ready for payment
+invoicesRouter.post("/:id/confirm", async (req, res) => {
+  const user = currentUser(req);
+  const invoice = await findVisibleInvoice(req, req.params.id);
+  if (!invoice) {
+    res.status(404).json({ error: "Invoice not found" });
+    return;
+  }
+
+  // First the status rules (403 / 409), then the data
+  checkTransition(invoice.status, "READY_FOR_PAYMENT", user.role);
+  if (!isEditable(invoice.status)) {
+    res.status(409).json({ error: "Plačanega računa ni mogoče urejati" });
+    return;
+  }
+
+  const parsed = confirmDataSchema.safeParse(req.body);
+  if (!parsed.success) {
+    res
+      .status(400)
+      .json({ error: "Invalid data", details: z.flattenError(parsed.error).fieldErrors });
+    return;
+  }
+
+  await transitionInvoice(invoice, "READY_FOR_PAYMENT", user.role, {
+    ...parsed.data,
+    reviewedById: user.id,
+    reviewedAt: new Date(),
+  });
+  const updated = await prisma.invoice.findUniqueOrThrow({
+    where: { id: invoice.id },
+    select: listSelect,
+  });
+  res.json(updated);
 });

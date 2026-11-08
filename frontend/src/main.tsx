@@ -8,8 +8,9 @@ import Layout from "./Layout";
 import ClientsPage from "./pages/ClientsPage";
 import LoginPage from "./pages/LoginPage";
 import MyInvoicesPage from "./pages/MyInvoicesPage";
+import ReviewPage from "./pages/ReviewPage";
+import ReviewQueuePage from "./pages/ReviewQueuePage";
 import UploadPage from "./pages/UploadPage";
-import WelcomePage from "./pages/WelcomePage";
 import "./index.css";
 
 createRoot(document.getElementById("root")!).render(
@@ -43,7 +44,22 @@ createRoot(document.getElementById("root")!).render(
               }
             />
             <Route path="/upload" element={<UploadPage />} />
-            <Route path="/welcome" element={<WelcomePage />} />
+            <Route
+              path="/review"
+              element={
+                <RequireAuth roles={["ACCOUNTANT", "ADMIN"]}>
+                  <ReviewQueuePage />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/review/:id"
+              element={
+                <RequireAuth roles={["ACCOUNTANT", "ADMIN"]}>
+                  <ReviewPage />
+                </RequireAuth>
+              }
+            />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

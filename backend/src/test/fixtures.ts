@@ -28,7 +28,7 @@ export async function createWorld() {
   async function client(name: string) {
     const c = await prisma.client.create({
       data: {
-        name: `VITEST ${name} ${tag}`,
+        name: `Fixture ${name} ${tag}`, // not "VITEST …" – clients.test.ts deletes those
         taxNumber: randomTaxNumber(),
         address: "Testna ulica 1, 1000 Ljubljana",
         iban: "SI56011001000012345",
