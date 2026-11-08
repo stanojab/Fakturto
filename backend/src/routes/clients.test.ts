@@ -1,8 +1,9 @@
 import { randomUUID } from "node:crypto";
 import request from "supertest";
-import { afterAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { app } from "../app.js";
 import { prisma } from "../db.js";
+import { createWorld, type World } from "../test/fixtures.js";
 
 const PREFIX = "VITEST ";
 const randomTaxNumber = () => String(10_000_000 + Math.floor(Math.random() * 90_000_000));
@@ -14,15 +15,27 @@ const validClient = () => ({
   paymentMode: "ACCOUNTANT_PAYS",
 });
 
+// The client routes need an administrator
+let w: World;
+let adminAuth: string;
+beforeAll(async () => {
+  w = await createWorld();
+  adminAuth = w.auth(w.admin);
+});
+
 // After all tests: remove ONLY the clients the tests created, then close the connection
 afterAll(async () => {
+  await w.cleanup();
   await prisma.client.deleteMany({ where: { name: { startsWith: PREFIX } } });
   await prisma.$disconnect();
 });
 
 describe("POST /api/clients", () => {
   it("creates a client and normalizes the IBAN", async () => {
-    const res = await request(app).post("/api/clients").send(validClient());
+    const res = await request(app)
+      .post("/api/clients")
+      .set("Authorization", adminAuth)
+      .send(validClient());
 
     expect(res.status).toBe(201);
     expect(res.body.iban).toBe("SI56011001000012345");
@@ -32,7 +45,7 @@ describe("POST /api/clients", () => {
   it("defaults the payment mode to ACCOUNTANT_PAYS", async () => {
     const { paymentMode: _omit, ...body } = validClient();
 
-    const res = await request(app).post("/api/clients").send(body);
+    const res = await request(app).post("/api/clients").set("Authorization", adminAuth).send(body);
 
     expect(res.status).toBe(201);
     expect(res.body.paymentMode).toBe("ACCOUNTANT_PAYS");
@@ -41,6 +54,7 @@ describe("POST /api/clients", () => {
   it("rejects an invalid tax number with 400", async () => {
     const res = await request(app)
       .post("/api/clients")
+      .set("Authorization", adminAuth)
       .send({ ...validClient(), taxNumber: "123" });
 
     expect(res.status).toBe(400);
@@ -50,6 +64,7 @@ describe("POST /api/clients", () => {
   it("rejects a non-Slovenian IBAN with 400", async () => {
     const res = await request(app)
       .post("/api/clients")
+      .set("Authorization", adminAuth)
       .send({ ...validClient(), iban: "DE89370400440532013000" });
 
     expect(res.status).toBe(400);
@@ -58,19 +73,23 @@ describe("POST /api/clients", () => {
 
   it("returns 409 for a duplicate tax number", async () => {
     const body = validClient();
-    await request(app).post("/api/clients").send(body).expect(201);
+    await request(app).post("/api/clients").set("Authorization", adminAuth).send(body).expect(201);
 
-    const res = await request(app).post("/api/clients").send(body);
+    const res = await request(app).post("/api/clients").set("Authorization", adminAuth).send(body);
     expect(res.status).toBe(409);
   });
 });
 
 describe("PATCH /api/clients/:id", () => {
   it("updates only the fields that were sent", async () => {
-    const created = await request(app).post("/api/clients").send(validClient());
+    const created = await request(app)
+      .post("/api/clients")
+      .set("Authorization", adminAuth)
+      .send(validClient());
 
     const res = await request(app)
       .patch(`/api/clients/${created.body.id}`)
+      .set("Authorization", adminAuth)
       .send({ address: "Nova ulica 2, 2000 Maribor" });
 
     expect(res.status).toBe(200);
@@ -81,13 +100,19 @@ describe("PATCH /api/clients/:id", () => {
 
 describe("DELETE /api/clients/:id", () => {
   it("deactivates the client instead of deleting it", async () => {
-    const created = await request(app).post("/api/clients").send(validClient());
+    const created = await request(app)
+      .post("/api/clients")
+      .set("Authorization", adminAuth)
+      .send(validClient());
     const { id, taxNumber } = created.body;
 
-    await request(app).delete(`/api/clients/${id}`).expect(204);
+    await request(app).delete(`/api/clients/${id}`).set("Authorization", adminAuth).expect(204);
 
     // It disappears from the normal list ...
-    const list = await request(app).get("/api/clients").query({ search: taxNumber });
+    const list = await request(app)
+      .get("/api/clients")
+      .set("Authorization", adminAuth)
+      .query({ search: taxNumber });
     expect(list.body.total).toBe(0);
 
     // ... but it is still in the database, with is_active = false
@@ -96,6 +121,9 @@ describe("DELETE /api/clients/:id", () => {
   });
 
   it("returns 404 for an unknown client", async () => {
-    await request(app).delete(`/api/clients/${randomUUID()}`).expect(404);
+    await request(app)
+      .delete(`/api/clients/${randomUUID()}`)
+      .set("Authorization", adminAuth)
+      .expect(404);
   });
 });

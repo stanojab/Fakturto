@@ -42,7 +42,7 @@ const publicUser = (user: User) => ({
   firmRole: user.firmRole,
 });
 
-const signAccessToken = (user: User) =>
+export const signAccessToken = (user: User) =>
   jwt.sign({ sub: user.id, firmRole: user.firmRole }, config.JWT_SECRET, {
     expiresIn: ACCESS_TOKEN_TTL,
   });
