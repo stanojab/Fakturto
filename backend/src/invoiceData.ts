@@ -60,3 +60,17 @@ export const confirmDataSchema = z.object({
   paymentReference: optional,
   paymentPurpose: optional,
 });
+
+// Today in Slovenia as "YYYY-MM-DD" (the server may run in UTC)
+export const todayInSlovenia = () =>
+  new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Ljubljana" }).format(new Date());
+
+// Marking as paid: the payment date is required and cannot be in the future
+export const markPaidSchema = z.object({
+  paidOn: z
+    .string({ error: REQUIRED })
+    .min(1, REQUIRED)
+    .pipe(date)
+    .refine((d) => d <= todayInSlovenia(), "Datum plačila ne sme biti v prihodnosti")
+    .transform((d) => new Date(d)),
+});

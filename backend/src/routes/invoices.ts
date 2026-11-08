@@ -4,7 +4,7 @@ import { z } from "zod";
 import { clientScope, invoiceScope } from "../access.js";
 import { prisma } from "../db.js";
 import { InvoiceStatus, Prisma } from "../generated/prisma/client.js";
-import { confirmDataSchema } from "../invoiceData.js";
+import { confirmDataSchema, markPaidSchema } from "../invoiceData.js";
 import { checkTransition, isEditable, transitionInvoice } from "../invoiceStatus.js";
 import { currentUser, requireAuth } from "../middleware/auth.js";
 import { deleteFile, openFile, saveFile, storageKey } from "../storage.js";
@@ -257,6 +257,72 @@ invoicesRouter.post("/:id/confirm", async (req, res) => {
     reviewedById: user.id,
     reviewedAt: new Date(),
   });
+  const updated = await prisma.invoice.findUniqueOrThrow({
+    where: { id: invoice.id },
+    select: listSelect,
+  });
+  res.json(updated);
+});
+
+// POST /api/invoices/:id/mark-paid – payment date + optional bank confirmation (multipart or JSON)
+invoicesRouter.post("/:id/mark-paid", acceptInvoiceFile({ required: false }), async (req, res) => {
+  const user = currentUser(req);
+  const invoice = await findVisibleInvoice(req, String(req.params.id));
+  if (!invoice) {
+    res.status(404).json({ error: "Invoice not found" });
+    return;
+  }
+  checkTransition(invoice.status, "PAID", user.role); // 403 / 409 before anything is saved
+
+  const parsed = markPaidSchema.safeParse(req.body);
+  if (!parsed.success) {
+    res
+      .status(400)
+      .json({ error: "Invalid data", details: z.flattenError(parsed.error).fieldErrors });
+    return;
+  }
+
+  // The bank confirmation is saved as a PAYMENT_CONFIRMATION document
+  const file = req.uploaded;
+  let key: string | undefined;
+  const documentId = randomUUID();
+  if (file) {
+    const client = await prisma.client.findUniqueOrThrow({ where: { id: invoice.clientId } });
+    key = storageKey(client.slug, documentId, file.ext);
+    await saveFile(key, file.buffer);
+  }
+
+  try {
+    // Status change and document in one transaction: both or nothing
+    await prisma.$transaction(async (tx) => {
+      await transitionInvoice(
+        invoice,
+        "PAID",
+        user.role,
+        { paidOn: parsed.data.paidOn, paidById: user.id },
+        tx,
+      );
+      if (file && key) {
+        await tx.document.create({
+          data: {
+            id: documentId,
+            invoiceId: invoice.id,
+            kind: "PAYMENT_CONFIRMATION",
+            storageKey: key,
+            originalFilename: file.originalName,
+            mimeType: file.mimeType,
+            sizeBytes: file.size,
+            sha256: file.sha256,
+            uploadedById: user.id,
+          },
+        });
+      }
+    });
+  } catch (e) {
+    if (key) await deleteFile(key);
+    throw e;
+  }
+
   const updated = await prisma.invoice.findUniqueOrThrow({
     where: { id: invoice.id },
     select: listSelect,
