@@ -15,7 +15,7 @@ clientsRouter.use(requireAuth);
 // What the query parameters (?page=2&search=novak) may look like
 const listQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
-  pageSize: z.coerce.number().int().min(1).max(100).default(20),
+  pageSize: z.coerce.number().int().min(1).max(500).default(20), // up to 500 for filter dropdowns
   search: z.string().trim().optional(),
   includeInactive: z.stringbool().default(false),
 });
