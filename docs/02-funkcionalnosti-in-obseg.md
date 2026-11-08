@@ -56,7 +56,7 @@ Funkcionalnosti, označene z **[MVP]**, so del prve delujoče različice. Funkci
 1. **[MVP] Nalaganje računov s strani stranke**
    Zaposleni pri stranki naloži račun kot PDF datoteko ali fotografijo, tudi neposredno s kamero telefona. Račun se samodejno uvrsti k pravi stranki ter po letu in mesecu.
 
-2. **[MVP] Samodejno branje podatkov iz računa** *(domensko specifična)*
+2. **Samodejno branje podatkov iz računa** *(domensko specifična)*
    Sistem v ozadju iz računa prebere izdajatelja, prejemnika, številko računa, datum izdaje, rok plačila, znesek, IBAN in sklic. Najprej poskusi prebrati UPN QR kodo, sicer uporabi model umetne inteligence za branje dokumentov. Za vsak podatek shrani tudi vir (QR koda, AI) in stopnjo zanesljivosti.
 
 3. **[MVP] Pregled in potrditev podatkov ob izvirniku** *(domensko specifična)*
@@ -89,6 +89,26 @@ Funkcionalnosti, označene z **[MVP]**, so del prve delujoče različice. Funkci
 
 11. **Izvoz arhiva in podatkov**
     Prenos vseh računov stranke za izbrano obdobje kot ZIP datoteke z enako strukturo map kot v aplikaciji ter tiskanje računov .
+
+## Obseg MVP
+
+Da je prva delujoča različica čim prej končana, MVP pokriva samo osnovni potek dela:
+
+`Naložen → V pregledu → Pripravljen za plačilo → Plačan`
+
+- stranka naloži račun (PDF, JPG ali PNG) in vidi seznam svojih računov s statusi,
+- računovodja ob izvirniku **ročno vnese** podatke za plačilo, jih preveri in potrdi,
+- računovodja vidi seznam računov za plačilo, kopira podatke v spletno banko in račun označi kot plačan,
+- uporabniki se prijavijo, vsak pa vidi samo podatke, do katerih ima pravico.
+
+V MVP **niso** vključeni (prestavljeni so za MVP, oznaka `po-mvp`):
+
+- samodejno branje podatkov (UPN QR koda, model AI) in opravila v ozadju,
+- vrnitev računa stranki in ponovno nalaganje,
+- ustvarjanje uporabnikov in povabila po e-pošti (uporabniki so ustvarjeni s seed skripto),
+- omejitev poskusov prijave in prikaz samo dovoljenih dejanj v vmesniku (dovoljene prehode statusov še vedno preverja zaledje).
+
+Datoteke računov so v MVP shranjene na lokalnem disku zaledja namesto v MinIO (glej [ADR 0006](adr/0006-lokalni-disk-za-mvp.md)).
 
 ## Kasnejše nadgradnje
 

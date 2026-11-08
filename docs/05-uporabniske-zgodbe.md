@@ -4,21 +4,21 @@ Uporabniške zgodbe izhajajo iz funkcionalnosti v dokumentu `02-funkcionalnosti-
 
 `Naložen → V obdelavi → V pregledu → Pripravljen za plačilo → Plačan → Arhiviran`, z vejo `V pregledu → Vrnjen stranki → V obdelavi`.
 
-Zgodbe, označene z **MVP**, so del prve delujoče različice.
+Zgodbe, označene z **MVP**, so del prve delujoče različice. Obseg MVP je bil zmanjšan (glej razdelek »Obseg MVP« v `02-funkcionalnosti-in-obseg.md`): US-02, US-04, US-05 in US-09 so prestavljene za MVP, pri US-08 je v MVP samo preverjanje prehodov v zaledju.
 
 ## Pregled
 
 | Oznaka | Naslov | Vloga | Funkcionalnost | MVP |
 |---|---|---|---|---|
 | US-01 | Nalaganje računa | Stranka | Nalaganje računov s strani stranke | ✓ |
-| US-02 | Samodejno branje podatkov | Računovodja | Samodejno branje podatkov iz računa | ✓ |
+| US-02 | Samodejno branje podatkov | Računovodja | Samodejno branje podatkov iz računa | |
 | US-03 | Pregled in potrditev podatkov | Računovodja | Pregled in potrditev podatkov ob izvirniku | ✓ |
-| US-04 | Vrnitev računa stranki | Računovodja | Pregled in potrditev podatkov ob izvirniku | ✓ |
-| US-05 | Ponovno nalaganje vrnjenega računa | Stranka | Potek obdelave s pravicami po vlogah | ✓ |
+| US-04 | Vrnitev računa stranki | Računovodja | Pregled in potrditev podatkov ob izvirniku | |
+| US-05 | Ponovno nalaganje vrnjenega računa | Stranka | Potek obdelave s pravicami po vlogah | |
 | US-06 | Seznam računov za plačilo | Računovodja | Plačilo in evidenca plačila | ✓ |
 | US-07 | Označitev računa kot plačanega | Računovodja | Plačilo in evidenca plačila | ✓ |
 | US-08 | Veljavni prehodi statusov | Administrator | Potek obdelave s pravicami po vlogah | ✓ |
-| US-09 | Ustvarjanje uporabnika in povabilo | Administrator | Prijava, vloge in ločenost podatkov strank | ✓ |
+| US-09 | Ustvarjanje uporabnika in povabilo | Administrator | Prijava, vloge in ločenost podatkov strank | |
 | US-10 | Prijava in ločenost podatkov | Stranka | Prijava, vloge in ločenost podatkov strank | ✓ |
 | US-11 | Nadzorna plošča rokov plačila | Računovodja | Nadzorna plošča rokov plačila | |
 | US-12 | Opozorilo na podvojen račun | Računovodja | Zaznavanje podvojenih računov | |
@@ -45,7 +45,7 @@ Zgodbe, označene z **MVP**, so del prve delujoče različice.
 
 ## US-02 – Samodejno branje podatkov
 
-- **Funkcionalnost:** Samodejno branje podatkov iz računa (MVP)
+- **Funkcionalnost:** Samodejno branje podatkov iz računa (po MVP)
 - **Vloga:** Računovodja
 
 **Kot** računovodja **želim**, da sistem podatke za plačilo iz naloženega računa prebere samodejno, **da** jih ne prepisujem ročno.
@@ -73,7 +73,7 @@ Zgodbe, označene z **MVP**, so del prve delujoče različice.
 
 ## US-04 – Vrnitev računa stranki
 
-- **Funkcionalnost:** Pregled in potrditev podatkov ob izvirniku (MVP)
+- **Funkcionalnost:** Pregled in potrditev podatkov ob izvirniku (po MVP)
 - **Vloga:** Računovodja
 
 **Kot** računovodja **želim** račun vrniti stranki z razlogom, **da** stranka ve, kaj mora popraviti, kadar je račun neberljiv, nepopoln ali napačen.
@@ -87,7 +87,7 @@ Zgodbe, označene z **MVP**, so del prve delujoče različice.
 
 ## US-05 – Ponovno nalaganje vrnjenega računa
 
-- **Funkcionalnost:** Potek obdelave s pravicami po vlogah (MVP)
+- **Funkcionalnost:** Potek obdelave s pravicami po vlogah (po MVP)
 - **Vloga:** Stranka
 
 **Kot** stranka **želim** k vrnjenemu računu naložiti novo datoteko, **da** se račun obdela naprej, ne da bi ustvarjala nov račun.
@@ -142,7 +142,7 @@ Zgodbe, označene z **MVP**, so del prve delujoče različice.
 
 ## US-09 – Ustvarjanje uporabnika in povabilo
 
-- **Funkcionalnost:** Prijava, vloge in ločenost podatkov strank (MVP)
+- **Funkcionalnost:** Prijava, vloge in ločenost podatkov strank (po MVP)
 - **Vloga:** Administrator
 
 **Kot** administrator **želim** ustvariti uporabniški račun in novemu uporabniku poslati povabilo, **da** do sistema dostopajo samo osebe, ki sodelujejo z računovodskim servisom.
