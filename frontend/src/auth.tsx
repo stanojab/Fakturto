@@ -52,6 +52,7 @@ export async function apiFetch(url: string, init: RequestInit = {}): Promise<Res
 
 // Where each role lands after login
 export function homePath(user: User) {
+  if (user.firmRole === null) return "/invoices";
   return user.firmRole === "ADMIN" ? "/clients" : "/welcome";
 }
 

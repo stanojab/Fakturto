@@ -7,6 +7,8 @@ import RequireAuth from "./components/RequireAuth";
 import Layout from "./Layout";
 import ClientsPage from "./pages/ClientsPage";
 import LoginPage from "./pages/LoginPage";
+import MyInvoicesPage from "./pages/MyInvoicesPage";
+import UploadPage from "./pages/UploadPage";
 import WelcomePage from "./pages/WelcomePage";
 import "./index.css";
 
@@ -32,6 +34,15 @@ createRoot(document.getElementById("root")!).render(
                 </RequireAuth>
               }
             />
+            <Route
+              path="/invoices"
+              element={
+                <RequireAuth roles={[null]}>
+                  <MyInvoicesPage />
+                </RequireAuth>
+              }
+            />
+            <Route path="/upload" element={<UploadPage />} />
             <Route path="/welcome" element={<WelcomePage />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
