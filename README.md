@@ -51,7 +51,8 @@ Rešitev ne nadomešča programa za knjiženje – pokriva korak **pred knjižen
    ```
 
 2. **Nastavi okoljske spremenljivke** – kopiraj predlogo in v `.env` nastavi svoje geslo
-   (isto geslo v `POSTGRES_PASSWORD` in v `DATABASE_URL`):
+   (isto geslo v `POSTGRES_PASSWORD` in v `DATABASE_URL`) ter dolg naključen `JWT_SECRET`
+   (ukaz za generiranje je v `.env.example`):
 
    ```bash
    cp .env.example .env
@@ -82,8 +83,9 @@ Rešitev ne nadomešča programa za knjiženje – pokriva korak **pred knjižen
    Seed se izvede samo na prazni bazi. Za ponoven začetek (**izbriše vse podatke**):
    `npx prisma migrate reset`.
 
-   Testni uporabniki: `admin@fakturko.test`, `racunovodja@fakturko.test`, `stranka@fakturko.test`
-   (prijava še ni implementirana).
+   Testni uporabniki: `admin@fakturko.test`, `racunovodja@fakturko.test`, `stranka@fakturko.test`,
+   vsi z geslom `Fakturko123!` (samo za lokalni razvoj). Na obstoječi bazi `npm run db:seed`
+   podatkov ne doda, testnim uporabnikom pa nastavi to geslo.
 
 6. **Zaženi backend:**
 

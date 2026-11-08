@@ -1,10 +1,14 @@
+import cookieParser from "cookie-parser";
 import express, { type NextFunction, type Request, type Response } from "express";
 import { prisma } from "./db.js";
+import { authRouter } from "./routes/auth.js";
 import { clientsRouter } from "./routes/clients.js";
 
 // The Express app without app.listen – so tests can use it without starting a server
 export const app = express();
 app.use(express.json());
+app.use(cookieParser()); // reads cookies into req.cookies (refresh token)
+app.use("/api/auth", authRouter);
 app.use("/api/clients", clientsRouter);
 
 // a check if the backend is running and the database is reachable
