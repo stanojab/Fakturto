@@ -138,6 +138,7 @@ Odločitve so zapisane po predlogi [MADR](https://adr.github.io/madr/) ([predlog
 | [0003](docs/adr/0003-branje-podatkov-kot-opravilo-v-ozadju.md) | Branje podatkov kot opravilo v ozadju (pg-boss) | sprejeto |
 | [0004](docs/adr/0004-najprej-upn-qr-nato-ai.md) | Najprej UPN QR koda, nato model AI | sprejeto |
 | [0005](docs/adr/0005-docker-compose-za-lokalni-zagon.md) | Docker Compose za lokalni zagon | sprejeto |
+| [0006](docs/adr/0006-lokalni-disk-za-mvp.md) | Datoteke računov v MVP na lokalnem disku namesto v MinIO | sprejeto |
 
 ## Razvojni proces
 
