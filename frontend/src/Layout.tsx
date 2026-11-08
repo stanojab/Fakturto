@@ -26,6 +26,7 @@ export default function Layout() {
           <NavLink to="/invoices">Moji računi</NavLink>
         )}
         {user?.firmRole && <NavLink to="/review">V pregledu</NavLink>}
+        {user?.firmRole && <NavLink to="/payments">Za plačilo</NavLink>}
         <NavLink to="/upload">Naloži račun</NavLink>
         {user?.firmRole === "ADMIN" && <NavLink to="/clients">Stranke</NavLink>}
         <span style={{ marginLeft: "auto" }}>{user?.fullName}</span>
