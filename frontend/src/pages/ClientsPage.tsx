@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { apiFetch } from "../auth";
 import ClientForm from "../components/ClientForm";
 
 export type Client = {
@@ -35,7 +36,7 @@ export default function ClientsPage() {
       search,
       includeInactive: String(showInactive),
     });
-    fetch(`/api/clients?${params}`)
+    apiFetch(`/api/clients?${params}`)
       .then((res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();
@@ -47,7 +48,7 @@ export default function ClientsPage() {
   // Soft delete: the backend sets is_active = false, the row stays in the database
   async function handleDeactivate(c: Client) {
     if (!confirm(`Ali res želite deaktivirati stranko "${c.name}"?`)) return;
-    const res = await fetch(`/api/clients/${c.id}`, { method: "DELETE" });
+    const res = await apiFetch(`/api/clients/${c.id}`, { method: "DELETE" });
     if (!res.ok) return alert(`Deaktivacija ni uspela (HTTP ${res.status})`);
     setReload(reload + 1);
   }
