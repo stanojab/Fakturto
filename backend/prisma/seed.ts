@@ -2,6 +2,7 @@
 // Zagon: npm run db:seed   |   Ponovni zagon na prazni bazi: npx prisma migrate reset
 import { randomUUID } from "node:crypto";
 import { fakerSL_SI as faker } from "@faker-js/faker";
+import argon2 from "argon2";
 import { PrismaPg } from "@prisma/adapter-pg";
 import {
   PrismaClient,
@@ -26,7 +27,24 @@ const COUNTS = {
   clients: 200,
   invoices: 6000,
 };
-const PLACEHOLDER_PASSWORD_HASH = "!seed-no-login"; // prava gesla pridejo z issue #9 (prijava)
+// Izmišljeni uporabniki nimajo gesla in se ne morejo prijaviti (to ni veljavna zgoščena vrednost Argon2)
+const PLACEHOLDER_PASSWORD_HASH = "!seed-no-login";
+// Testni uporabniki (po en za vsako vlogo) dobijo pravo geslo, da se lahko prijavijo – samo za lokalni razvoj
+const TEST_USER_EMAILS = [
+  "admin@fakturko.test",
+  "racunovodja@fakturko.test",
+  "stranka@fakturko.test",
+];
+const TEST_USER_PASSWORD = "Fakturko123!";
+
+async function setTestUserPasswords() {
+  const passwordHash = await argon2.hash(TEST_USER_PASSWORD);
+  const { count } = await prisma.user.updateMany({
+    where: { email: { in: TEST_USER_EMAILS } },
+    data: { passwordHash },
+  });
+  console.log(`Geslo nastavljeno za ${count} testne uporabnike`);
+}
 
 // ---------- Pomožne funkcije ----------
 const ascii = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
@@ -47,6 +65,7 @@ async function insertInChunks<T>(rows: T[], insert: (chunk: T[]) => Promise<unkn
 async function main() {
   if ((await prisma.user.count()) > 0) {
     console.log("Baza ni prazna – seed preskočen. Za ponovni začetek: npx prisma migrate reset");
+    await setTestUserPasswords(); // tudi na obstoječi bazi, da prijava deluje brez brisanja podatkov
     return;
   }
 
@@ -390,6 +409,7 @@ async function main() {
     notifications: notifications.length,
   });
   console.log(`Skupaj: ${total} zapisov`);
+  await setTestUserPasswords();
 }
 
 main()
