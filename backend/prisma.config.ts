@@ -1,7 +1,11 @@
 import { defineConfig, env } from "prisma/config";
+import { existsSync } from "node:fs";
 
-// Load the .env from the repo root (one folder up)
-process.loadEnvFile("../.env");
+// Lokalno naloži .env, če datoteka obstaja.
+// Na Renderju uporabi okoljske spremenljivke.
+if (existsSync("../.env")) {
+  process.loadEnvFile("../.env");
+}
 
 export default defineConfig({
   schema: "prisma/schema.prisma",
@@ -10,6 +14,6 @@ export default defineConfig({
     seed: "tsx prisma/seed.ts",
   },
   datasource: {
-    url: env("DATABASE_URL"), // env() stops with an error if the variable is missing
+    url: env("DATABASE_URL"),
   },
 });
