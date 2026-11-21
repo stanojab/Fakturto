@@ -412,6 +412,57 @@ async function main() {
   await setTestUserPasswords();
 }
 
+
+
+import argon2 from "argon2";
+import { PrismaPg } from "@prisma/adapter-pg";
+import { PrismaClient } from "../src/generated/prisma/client.js";
+
+const databaseUrl = process.env.DATABASE_URL;
+const email = process.env.ADMIN_EMAIL;
+const password = process.env.ADMIN_PASSWORD;
+
+if (!databaseUrl || !email || !password || password.length < 12) {
+  throw new Error("Manjkajo DATABASE_URL, ADMIN_EMAIL ali veljaven ADMIN_PASSWORD");
+}
+
+const prisma = new PrismaClient({
+  adapter: new PrismaPg({ connectionString: databaseUrl }),
+});
+
+async function main() {
+  const existing = await prisma.user.findUnique({
+    where: { email: email! },
+  });
+
+  if (existing) {
+    console.log("Uporabnik že obstaja. Sprememb ni.");
+    return;
+  }
+
+  const passwordHash = await argon2.hash(password!);
+
+  await prisma.user.create({
+    data: {
+      email: email!,
+      fullName: "Testni administrator",
+      passwordHash,
+      firmRole: "ADMIN",
+      isActive: true,
+    },
+  });
+
+  console.log("Administrator uspešno ustvarjen.");
+}
+
+main()
+  .catch((error) => {
+    console.error(error);
+    process.exitCode = 1;
+  })
+  .finally(() => prisma.$disconnect());
+
+
 main()
   .catch((e) => {
     console.error(e);
